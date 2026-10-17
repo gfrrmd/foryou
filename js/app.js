@@ -1,10 +1,11 @@
-/* UI flow: order, matching, trip, arrival chat, rating. */
+/* UI flow: order, matching, trip, full-screen chat, rating, text-only call. */
 (function () {
   const C = LG.config, $ = id => document.getElementById(id);
-  let selected = 0, timers = [], stopAnim = null, route = null;
+  let selected = 0, timers = [], stopAnim = null, route = null, rated = false, ratePending = false, tick = null;
   const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
-  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; clearInterval(tick); };
   const fill = s => s.replace("{hi}", C.passengerName ? "Hi " + C.passengerName : "Hi there");
+  const initial = C.driverName.charAt(0).toUpperCase();
 
   function go(id) {
     document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === id));
@@ -39,7 +40,8 @@
   /* Trip (no chat while driving) */
   function startTrip() {
     $("driverName").textContent = C.driverName;
-    $("avatar").textContent = C.driverName.charAt(0).toUpperCase();
+    [$("avatar"), $("chatAvatar"), $("callAvatar")].forEach(a => a.textContent = initial);
+    $("chatName").textContent = $("callName").textContent = C.driverName;
     go("v-trip");
     const mins = Math.max(2, route.dur / 60);
     stopAnim = LG.map.animate((p, left) => {
@@ -50,7 +52,7 @@
     }, () => { $("status").textContent = "You have arrived"; later(arrive, 1800); });
   }
 
-  /* Arrival chat */
+  /* Full-screen chat (after arrival, slow pacing) */
   const chat = $("chat");
   function bubble(text, who) {
     const d = document.createElement("div"), n = new Date();
@@ -64,39 +66,86 @@
     if (!on && t) t.remove();
     chat.scrollTop = chat.scrollHeight;
   }
-  function say(text, delay, cb) { typing(true); later(() => { typing(false); bubble(text, "d"); cb && cb(); }, delay); }
-  let finaleShown = false;
-  function finale() {
-    if (finaleShown) return; finaleShown = true;
-    $("chips").classList.remove("show");
-    $("finale").classList.add("show");
-    later(() => { $("sheet").scrollTo({ top: $("sheet").scrollHeight, behavior: "smooth" }); }, 100);
-  }
+  const typeTime = s => 1400 + s.length * 30;
+  function say(text, cb) { typing(true); later(() => { typing(false); bubble(text, "d"); cb && cb(); }, typeTime(text)); }
+
   function arrive() {
-    go("v-done"); chat.innerHTML = ""; finaleShown = false;
-    $("finale").classList.remove("show"); $("chips").classList.remove("show");
-    let t = 600;
-    LG.arrival.forEach(m => { const at = t; later(() => say(fill(m), 1500), at); t += 1500 + 1100; });
+    $("chatScreen").classList.add("show");
+    chat.innerHTML = ""; rated = ratePending = false;
+    $("chips").classList.remove("show"); $("rate").classList.remove("show");
+    let t = 1000;
+    LG.arrival.forEach(m => { const text = fill(m), at = t; later(() => say(text), at); t += typeTime(text) + 1600; });
     later(() => {
       $("chips").innerHTML = LG.quickReplies.map((r, i) => `<button data-i="${i}">${r.q}</button>`).join("");
       $("chips").classList.add("show");
-      later(finale, 12000);
+      later(showRate, 16000);
     }, t);
+  }
+  function showRate() {
+    if (ratePending) return; ratePending = true;
+    $("chips").classList.remove("show"); $("rate").classList.add("show"); hearts(8);
   }
   $("chips").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     const r = LG.quickReplies[+b.dataset.i];
     $("chips").classList.remove("show");
-    bubble(r.q, "u"); say(r.a, 1500, () => later(() => { finale(); hearts(10); }, 1200));
+    bubble(r.q, "u"); later(() => say(r.a, () => later(showRate, 1800)), 900);
   });
 
-  /* Rating and proposal */
+  /* Rating, then incoming call */
   $("stars").innerHTML = Array.from({ length: 5 }, () => '<button aria-label="Rate"><svg class="i"><use href="#i-star"/></svg></button>').join("");
   $("stars").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     const all = [...$("stars").children], n = all.indexOf(b);
     all.forEach((x, i) => x.classList.toggle("on", i <= n));
+    if (!rated) { rated = true; later(ring, 1400); }
   });
+
+  const call = $("call"), floats = $("floats");
+  function ring() {
+    floats.innerHTML = ""; $("callTimer").textContent = "";
+    $("callState").textContent = "Incoming LoveGo call";
+    call.className = "call show ringing";
+  }
+  $("decline").addEventListener("click", () => {
+    $("callState").textContent = "Declined? " + C.driverName + " is calling again...";
+    call.classList.remove("ringing"); void call.offsetWidth; call.classList.add("ringing");
+  });
+  $("accept").addEventListener("click", () => {
+    call.className = "call show live"; $("callState").textContent = "Connected";
+    let sec = 0; $("callTimer").textContent = "00:00";
+    tick = setInterval(() => { sec++; $("callTimer").textContent = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0"); }, 1000);
+    let t = 1200;
+    LG.callLines.forEach(line => {
+      const talk = 1500 + line.length * 22, read = 1800 + line.length * 32;
+      later(() => addTalking(true), t); t += talk;
+      later(() => { addTalking(false); floatBubble(line); }, t); t += read;
+    });
+    later(endCall, t + 1500);
+  });
+  $("hang").addEventListener("click", endCall);
+
+  function addTalking(on) {
+    let t = floats.querySelector(".typing");
+    if (on && !t) { t = document.createElement("div"); t.className = "typing"; t.innerHTML = "<i></i><i></i><i></i>"; floats.appendChild(t); }
+    if (!on && t) t.remove();
+  }
+  function floatBubble(text) {
+    const d = document.createElement("div"); d.className = "fb"; d.textContent = text; floats.appendChild(d);
+    const kids = [...floats.querySelectorAll(".fb")];
+    kids.forEach((k, i) => { const age = kids.length - 1 - i; k.style.opacity = Math.max(0, 1 - age * 0.3); if (age > 4) k.remove(); });
+  }
+  let ending = false;
+  function endCall() {
+    if (ending) return; ending = true; clearInterval(tick);
+    $("callState").textContent = "Call ended"; addTalking(false);
+    setTimeout(() => {
+      call.className = "call"; $("chatScreen").classList.remove("show"); ending = false;
+      go("v-ask");
+    }, 1200);
+  }
+
+  /* Proposal */
   const labels = ["Let me think", "Are you sure?", "Okay, yes"];
   let tries = 0;
   $("later").addEventListener("click", () => {
@@ -106,9 +155,10 @@
   });
   $("yes").addEventListener("click", () => { go("v-end"); hearts(34); });
   $("againBtn").addEventListener("click", () => {
-    clearTimers(); stopAnim && stopAnim(); tries = 0;
+    clearTimers(); stopAnim && stopAnim(); tries = 0; ending = false;
     $("later").textContent = "Maybe later";
     document.querySelectorAll("#stars button").forEach(x => x.classList.remove("on"));
+    call.className = "call"; $("chatScreen").classList.remove("show");
     go("v-order"); LG.map.reset();
   });
 

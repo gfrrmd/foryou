@@ -16,17 +16,29 @@ window.LG = {
     { icon: "i-car", name: "LoveCar", desc: "More comfort, more conversation", price: "Free" },
     { icon: "i-inf", name: "LoveForever", desc: "One-way trip, no return", price: "Priceless" }
   ],
-  // Chat starts only after the vehicle has arrived.
+  // Full-screen chat, starts after the vehicle has arrived.
   arrival: [
-    "{hi}, it is Zia, your driver tonight. We have arrived at your destination.",
-    "That destination was my heart. I hope you do not mind the extra stop.",
-    "I took the fastest route, but honestly I would have taken the long way for more time with you.",
-    "I have had a lot of passengers. You are the first one I do not want to drop off.",
-    "So before you leave the car, I have one question for you."
+    "{hi}, Zia here, your driver. We have arrived, no cap.",
+    "ok so the destination you picked? that is literally my heart. lowkey an iconic choice.",
+    "you have been living in my head rent free since the pick-up point, fr fr.",
+    "I do not hand out 5 stars to passengers but you? it is giving main character energy.",
+    "highkey thought about taking the long way so we had more time. green flag behavior, I know.",
+    "not to be dramatic but you might be my favorite side quest.",
+    "ok I will stop yapping. say something, I am getting a little nervous lol."
   ],
   quickReplies: [
-    { q: "Okay, that was smooth.", a: "I practiced the whole route." },
-    { q: "Is this a pick-up line?", a: "Maybe. Is it working?" },
-    { q: "I like where this is going.", a: "Good. Stay for dinner." }
+    { q: "Not you flirting with me", a: "Delulu is the solulu, so yes I am. Is it working?" },
+    { q: "Lowkey it is working", a: "Yesss. Locked in. Do not leave yet, I am not done." },
+    { q: "Ok that was actually smooth", a: "I practiced the route AND the rizz." }
+  ],
+  // Floating text bubbles during the incoming call (no audio).
+  callLines: [
+    "Hello? Can you hear me? Ok good. I just needed to say this out loud.",
+    "I know we met on a ride, but my brain said bet and my heart said send it.",
+    "Be honest, are you a green flag or a green flag? Because I only see green.",
+    "I have been smiling at my phone since you rated me. Down bad? Maybe. Regretting it? Never.",
+    "So let us skip the situationship arc and go straight to the good part.",
+    "Dinner. You, me, and food we both pretend to share.",
+    "Anyway, I am hanging up before I say something even more unhinged. The answer is on your screen."
   ]
 };
