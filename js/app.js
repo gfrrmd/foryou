@@ -115,7 +115,8 @@
     call.classList.remove("ringing"); void call.offsetWidth; call.classList.add("ringing");
   });
   $("accept").addEventListener("click", () => {
-    call.className = "call show live"; $("callState").textContent = "Connected";
+    if (call.classList.contains("connected")) return;   // cegah double-tap menjalankan timer ganda
+    call.className = "call show connected"; $("callState").textContent = "Connected";
     let sec = 0; $("callTimer").textContent = "00:00";
     clearInterval(tick); tick = setInterval(() => { sec++; $("callTimer").textContent = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0"); }, 1000);
     let t = 1200;
