@@ -110,10 +110,6 @@
     $("callState").textContent = "Incoming LoveGo call";
     call.className = "call show ringing";
   }
-  $("decline").addEventListener("click", () => {
-    $("callState").textContent = "Declined? " + C.driverName + " is calling again...";
-    call.classList.remove("ringing"); void call.offsetWidth; call.classList.add("ringing");
-  });
   $("accept").addEventListener("click", () => {
     if (call.classList.contains("connected")) return;   // cegah double-tap menjalankan timer ganda
     call.className = "call show connected"; $("callState").textContent = "Connected";
@@ -127,7 +123,6 @@
     });
     callLater(endCall, t + 1500);
   });
-  $("hang").addEventListener("click", endCall);
 
   function addTalking(on) {
     let t = floats.querySelector(".typing");
