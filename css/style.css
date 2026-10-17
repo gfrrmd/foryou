@@ -165,4 +165,4 @@ h1{font-size:20px;line-height:1.25;font-weight:800;letter-spacing:-.3px}
 .cbtn .i{width:28px;height:28px}
 .cbtn.red{background:#EF4444}.cbtn.red .i{rotate:135deg}
 .cbtn.green{background:#22C55E;animation:beat 1.1s ease-in-out infinite}
-.call .live-only{display:none}.call.live .live-only{display:flex}.call.live .in-only{display:none}
+.call .live-only{display:none}.call.connected .live-only{display:flex}.call.connected .in-only{display:none}
