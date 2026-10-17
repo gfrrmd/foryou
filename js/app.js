@@ -1,9 +1,11 @@
 /* UI flow: order, matching, trip, full-screen chat, rating, text-only call. */
 (function () {
   const C = LG.config, $ = id => document.getElementById(id);
-  let selected = 0, timers = [], stopAnim = null, route = null, rated = false, ratePending = false, tick = null;
+  let selected = 0, timers = [], callTimers = [], stopAnim = null, route = null, rated = false, ratePending = false, tick = null, side = 0, inCall = false;
   const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
-  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; clearInterval(tick); };
+  const callLater = (fn, ms) => { const t = setTimeout(fn, ms); callTimers.push(t); return t; };
+  const clearCall = () => { callTimers.forEach(clearTimeout); callTimers = []; clearInterval(tick); tick = null; };
+  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; clearCall(); };
   const fill = s => s.replace("{hi}", C.passengerName ? "Hi " + C.passengerName : "Hi there");
   const initial = C.driverName.charAt(0).toUpperCase();
 
@@ -103,6 +105,7 @@
 
   const call = $("call"), floats = $("floats");
   function ring() {
+    if (inCall) return; inCall = true; ending = false; side = 0; clearCall();
     floats.innerHTML = ""; $("callTimer").textContent = "";
     $("callState").textContent = "Incoming LoveGo call";
     call.className = "call show ringing";
@@ -114,14 +117,14 @@
   $("accept").addEventListener("click", () => {
     call.className = "call show live"; $("callState").textContent = "Connected";
     let sec = 0; $("callTimer").textContent = "00:00";
-    tick = setInterval(() => { sec++; $("callTimer").textContent = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0"); }, 1000);
+    clearInterval(tick); tick = setInterval(() => { sec++; $("callTimer").textContent = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0"); }, 1000);
     let t = 1200;
     LG.callLines.forEach(line => {
       const talk = 1500 + line.length * 22, read = 1800 + line.length * 32;
-      later(() => addTalking(true), t); t += talk;
-      later(() => { addTalking(false); floatBubble(line); }, t); t += read;
+      callLater(() => addTalking(true), t); t += talk;
+      callLater(() => { addTalking(false); floatBubble(line); }, t); t += read;
     });
-    later(endCall, t + 1500);
+    callLater(endCall, t + 1500);
   });
   $("hang").addEventListener("click", endCall);
 
@@ -131,17 +134,17 @@
     if (!on && t) t.remove();
   }
   function floatBubble(text) {
-    const d = document.createElement("div"); d.className = "fb"; d.textContent = text; floats.appendChild(d);
+    const d = document.createElement("div"); d.className = "fb " + (side++ % 2 ? "r" : "l"); d.textContent = text; floats.appendChild(d);
     const kids = [...floats.querySelectorAll(".fb")];
     kids.forEach((k, i) => { const age = kids.length - 1 - i; k.style.opacity = Math.max(0, 1 - age * 0.3); if (age > 4) k.remove(); });
   }
   let ending = false;
   function endCall() {
-    if (ending) return; ending = true; clearInterval(tick);
+    if (ending || !inCall) return; ending = true; clearCall();
     $("callState").textContent = "Call ended"; addTalking(false);
-    setTimeout(() => {
-      call.className = "call"; $("chatScreen").classList.remove("show"); ending = false;
-      go("v-ask");
+    callLater(() => {
+      call.className = "call"; $("chatScreen").classList.remove("show");
+      ending = false; inCall = false; go("v-ask");
     }, 1200);
   }
 
@@ -155,7 +158,7 @@
   });
   $("yes").addEventListener("click", () => { go("v-end"); hearts(34); });
   $("againBtn").addEventListener("click", () => {
-    clearTimers(); stopAnim && stopAnim(); tries = 0; ending = false;
+    clearTimers(); stopAnim && stopAnim(); tries = 0; ending = false; inCall = false;
     $("later").textContent = "Maybe later";
     document.querySelectorAll("#stars button").forEach(x => x.classList.remove("on"));
     call.className = "call"; $("chatScreen").classList.remove("show");
