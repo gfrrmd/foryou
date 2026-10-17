@@ -59,24 +59,25 @@
 
   <section class="view" id="v-trip">
     <div class="status"><span class="live"></span><span id="status">Driver accepted your order</span></div>
-    <div class="eta"><div><strong id="eta">-- min</strong><small id="dist">-- km away</small></div><span class="plate">LOVE 01</span></div>
+    <div class="eta"><div><strong id="eta">-- min</strong><small id="dist">-- km away</small></div><span class="plate">ZIA 01</span></div>
     <div class="track"><div id="bar"></div></div>
     <div class="driver">
       <div class="avatar" id="avatar"></div>
       <div class="meta"><b id="driverName"></b><small>5.0 rating, 1,000+ trips</small></div>
       <button class="round" aria-label="Call"><svg class="i"><use href="#i-phone"/></svg></button>
     </div>
-    <div class="chat" id="chat"></div>
-    <div class="chips" id="chips"></div>
   </section>
 
   <section class="view" id="v-done">
-    <div class="ok"><svg class="i"><use href="#i-check"/></svg></div>
-    <h1 class="c">You have arrived</h1>
-    <p class="sub c">Welcome to my heart. Rate your ride before you go.</p>
-    <div class="stars" id="stars"></div>
-    <div class="ask"><b>One more thing</b><p>Would you like to book a dinner date with your driver?</p></div>
-    <div class="actions"><button class="btn" id="yes">Yes, book it</button><button class="btn ghost" id="later">Maybe later</button></div>
+    <div class="arrived"><span class="ok sm"><svg class="i"><use href="#i-check"/></svg></span><div><h1>Your driver has arrived</h1><p class="sub">Zia has a few words before you leave the car.</p></div></div>
+    <div class="chat" id="chat"></div>
+    <div class="chips" id="chips"></div>
+    <div class="finale" id="finale">
+      <p class="sub c">Rate your ride</p>
+      <div class="stars" id="stars"></div>
+      <div class="ask"><b>One more thing</b><p>Would you like to book a dinner date with your driver?</p></div>
+      <div class="actions"><button class="btn" id="yes">Yes, book it</button><button class="btn ghost" id="later">Maybe later</button></div>
+    </div>
   </section>
 
   <section class="view" id="v-end">
