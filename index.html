@@ -59,7 +59,7 @@
 
   <section class="view" id="v-trip">
     <div class="status"><span class="live"></span><span id="status">Driver accepted your order</span></div>
-    <div class="eta"><div><strong id="eta">-- min</strong><small id="dist">-- km away</small></div><span class="plate">B 6699 ZIA</span></div>
+    <div class="eta"><div><strong id="eta">-- min</strong><small id="dist">-- km away</small></div><span class="plate">ZIA 01</span></div>
     <div class="track"><div id="bar"></div></div>
     <div class="driver">
       <div class="avatar" id="avatar"></div>
@@ -68,16 +68,12 @@
     </div>
   </section>
 
-  <section class="view" id="v-done">
-    <div class="arrived"><span class="ok sm"><svg class="i"><use href="#i-check"/></svg></span><div><h1>Your driver has arrived</h1><p class="sub">Zia has a few words before you leave the car.</p></div></div>
-    <div class="chat" id="chat"></div>
-    <div class="chips" id="chips"></div>
-    <div class="finale" id="finale">
-      <p class="sub c">Rate your ride</p>
-      <div class="stars" id="stars"></div>
-      <div class="ask"><b>One more thing</b><p>Would you like to book a dinner date with your driver?</p></div>
-      <div class="actions"><button class="btn" id="yes">Yes, book it</button><button class="btn ghost" id="later">Maybe later</button></div>
-    </div>
+  <section class="view" id="v-ask">
+    <div class="ok"><svg class="i"><use href="#i-check"/></svg></div>
+    <h1 class="c">Call ended</h1>
+    <p class="sub c">Zia asked you something. Here is the question.</p>
+    <div class="ask"><b>Dinner date?</b><p>Book a table for two with your driver.</p></div>
+    <div class="actions"><button class="btn" id="yes">Yes, book it</button><button class="btn ghost" id="later">Maybe later</button></div>
   </section>
 
   <section class="view" id="v-end">
@@ -88,6 +84,28 @@
     <button class="btn ghost" id="againBtn">Order another ride</button>
   </section>
 </main>
+
+<section class="chatscreen" id="chatScreen" aria-label="Chat with your driver">
+  <header class="chathead"><div class="avatar" id="chatAvatar"></div><div><b id="chatName"></b><small>Driver, online</small></div></header>
+  <div class="chatbody" id="chat"></div>
+  <footer class="chatfoot">
+    <div class="chips" id="chips"></div>
+    <div class="rate" id="rate"><p>How was your ride?</p><div class="stars" id="stars"></div></div>
+  </footer>
+</section>
+
+<section class="call" id="call" aria-live="polite">
+  <div class="call-top"><small id="callState">Incoming LoveGo call</small><h2 id="callName"></h2><span id="callTimer"></span></div>
+  <div class="call-av"><i></i><i></i><i></i><div class="avatar big" id="callAvatar"></div></div>
+  <div class="floats" id="floats"></div>
+  <div class="call-actions in-only">
+    <div class="cw"><button class="cbtn red" id="decline" aria-label="Decline"><svg class="i"><use href="#i-phone"/></svg></button><small>Decline</small></div>
+    <div class="cw"><button class="cbtn green" id="accept" aria-label="Accept"><svg class="i"><use href="#i-phone"/></svg></button><small>Accept</small></div>
+  </div>
+  <div class="call-actions live-only">
+    <div class="cw"><button class="cbtn red" id="hang" aria-label="End call"><svg class="i"><use href="#i-phone"/></svg></button><small>End call</small></div>
+  </div>
+</section>
 
 <div class="hearts" id="hearts" aria-hidden="true"></div>
 
