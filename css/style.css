@@ -75,7 +75,7 @@ h1{font-size:20px;line-height:1.25;font-weight:800;letter-spacing:-.3px}
 .avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#00AA13,#6FD47F);color:#fff;font-weight:800;font-size:18px;display:grid;place-items:center;flex:none}
 .meta{flex:1}.meta b{display:block;font-size:15px}
 .round{width:40px;height:40px;border-radius:50%;background:var(--g3);color:var(--g);display:grid;place-items:center}
-.chat{display:flex;flex-direction:column;gap:8px;height:180px;overflow-y:auto;padding:12px;background:var(--bg);border-radius:16px;scroll-behavior:smooth}
+.chat{display:flex;flex-direction:column;gap:8px;height:230px;overflow-y:auto;padding:12px;background:var(--bg);border-radius:16px;scroll-behavior:smooth}
 .msg{max-width:84%;padding:9px 12px;border-radius:16px;font-size:13.5px;line-height:1.45;animation:pop .3s cubic-bezier(.2,1.3,.4,1) both}
 .msg small{display:block;margin-top:3px;font-size:10px;opacity:.65;color:inherit}
 .msg.d{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.08);transform-origin:left bottom}
@@ -85,7 +85,7 @@ h1{font-size:20px;line-height:1.25;font-weight:800;letter-spacing:-.3px}
 .typing i{width:6px;height:6px;border-radius:50%;background:var(--mut);animation:dot 1.2s infinite}
 .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
 @keyframes dot{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-4px);opacity:1}}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
+.chips{display:none;gap:8px;overflow-x:auto;padding:12px 0 2px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chips button{flex:none;padding:9px 14px;border:1.5px solid var(--g);border-radius:999px;color:var(--g);font-size:12.5px;font-weight:600;background:#fff;transition:background .2s}
 .chips button:hover{background:var(--g3)}.chips button:disabled{opacity:.35;pointer-events:none}
@@ -104,8 +104,8 @@ h1{font-size:20px;line-height:1.25;font-weight:800;letter-spacing:-.3px}
 .receipt .tot{font-weight:800;color:var(--ink)}.receipt .tot dd{color:var(--g);font-weight:800}
 
 .o-dot{width:20px;height:20px;border-radius:50%;background:var(--g);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.d-pin{position:relative;width:60px;height:64px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}
-.d-pin span{background:var(--ink);color:#fff;font:700 11px 'Plus Jakarta Sans',sans-serif;padding:3px 9px;border-radius:999px}
+.d-pin{position:relative;width:80px;height:64px;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}
+.d-pin span{white-space:nowrap;background:var(--ink);color:#fff;font:700 11px 'Plus Jakarta Sans',sans-serif;padding:3px 9px;border-radius:999px}
 .d-pin .i{width:38px;height:38px;color:var(--red);margin-top:2px}
 .veh{position:relative;width:52px;height:52px;display:grid;place-items:center}
 .veh i{position:absolute;inset:0;border-radius:50%;background:var(--g);opacity:.25;animation:ping 2s ease-out infinite}
@@ -119,3 +119,11 @@ h1{font-size:20px;line-height:1.25;font-weight:800;letter-spacing:-.3px}
   .topbar{padding-left:24px;padding-right:24px}
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+.chips.show{display:flex}
+.d-pin.you .i{color:var(--g)}
+.arrived{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.arrived h1{font-size:18px}
+.ok.sm{width:44px;height:44px;margin:0}.ok.sm .i{width:24px;height:24px}
+.finale{display:none;padding-top:8px}
+.finale.show{display:block;animation:fadeIn .4s both}
