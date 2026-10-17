@@ -1,21 +1,25 @@
 /* Map, OSRM routing and driver animation. */
 (function () {
   const C = LG.config;
-  let map, routeLine, doneLine, driver, following = true, route = null;
+  let map, routeLine, doneLine, driver, following = true, route = null, off = [0, 0];
 
-  function icon(html, size, anchor) {
-    return L.divIcon({ className: "", html, iconSize: size, iconAnchor: anchor });
-  }
+  const icon = (html, size, anchor) => L.divIcon({ className: "", html, iconSize: size, iconAnchor: anchor });
 
-  function padding() {
+  /* Shift so a point appears centered in the visible area (not behind the sheet). */
+  function refresh() {
     const s = document.getElementById("sheet");
-    if (window.innerWidth >= 768) return { paddingTopLeft: [s.offsetWidth + 70, 90], paddingBottomRight: [50, 50] };
-    return { paddingTopLeft: [30, 90], paddingBottomRight: [30, s.offsetHeight + 30] };
+    off = window.innerWidth >= 768 ? [-(s.offsetWidth + 48) / 2, 0] : [0, s.offsetHeight / 2];
+  }
+  function focus(ll, zoom, animate) {
+    const z = zoom || map.getZoom();
+    const c = map.unproject(map.project(ll, z).add(off), z);
+    if (animate) map.flyTo(c, z, { duration: 1.2 }); else map.setView(c, z, { animate: false });
   }
 
   function init() {
     const state = document.getElementById("mapState");
     map = L.map("map", { zoomControl: false, attributionControl: false, zoomSnap: 0.5 });
+    map.setView(C.start, C.followZoom, { animate: false });
     L.control.attribution({ position: "topright", prefix: false }).addTo(map);
     const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -23,11 +27,13 @@
     }).addTo(map);
     tiles.on("load", () => state.classList.add("hide"));
     tiles.on("tileerror", () => { state.textContent = "Map tiles could not be loaded. Check your connection."; });
-    L.marker(C.start, { icon: icon('<div class="o-dot"></div>', [20, 20], [10, 10]), interactive: false }).addTo(map);
-    L.marker(C.end, { icon: icon('<div class="d-pin"><span>You</span><svg class="i"><use href="#i-pin"/></svg></div>', [60, 64], [30, 62]), interactive: false }).addTo(map);
-    map.fitBounds([C.start, C.end], padding());
+    const pin = (label, cls) => icon(`<div class="d-pin ${cls}"><span>${label}</span><svg class="i"><use href="#i-pin"/></svg></div>`, [80, 64], [40, 62]);
+    L.marker(C.start, { icon: pin("You", "you"), interactive: false }).addTo(map);
+    L.marker(C.end, { icon: pin("My heart", "dest"), interactive: false }).addTo(map);
+    refresh();
+    focus(C.start, C.followZoom, false);   // always start centered on the first point
     map.on("dragstart", () => { following = false; });
-    window.addEventListener("resize", () => map.invalidateSize());
+    window.addEventListener("resize", () => { map.invalidateSize(); refresh(); });
   }
 
   async function getRoute() {
@@ -38,8 +44,7 @@
       const timer = setTimeout(() => ctl.abort(), 9000);
       const res = await fetch(url, { signal: ctl.signal });
       clearTimeout(timer);
-      const json = await res.json();
-      const r = json.routes[0];
+      const r = (await res.json()).routes[0];
       route = { pts: r.geometry.coordinates.map(c => [c[1], c[0]]), dur: r.duration, dist: r.distance, fallback: false };
     } catch (e) {
       const d = map.distance(a, b);
@@ -71,14 +76,14 @@
       icon: icon('<div class="veh"><i></i><svg class="i"><use href="#i-nav"/></svg></div>', [52, 52], [26, 26]),
       zIndexOffset: 1000, interactive: false
     }).addTo(map);
-    following = true;
-    map.setView(pts[0], C.followZoom, { animate: false });
-    let idx = 0, angle = 0, raf = 0, stopped = false;
-    const t0 = performance.now();
+    following = true; refresh();
+    focus(pts[0], C.followZoom, true);               // 1) center on the first point
+    let idx = 0, angle = bearing(pts[0], pts[Math.min(4, pts.length - 1)]), raf = 0, stopped = false;
+    const t0 = performance.now() + C.startDelay;     // 2) wait, then follow the route
 
     function frame(now) {
       if (stopped) return;
-      const p = Math.min(1, (now - t0) / C.tripMs), target = p * total;
+      const p = Math.min(1, Math.max(0, (now - t0) / C.tripMs)), target = p * total;
       while (idx < pts.length - 2 && cum[idx + 1] < target) idx++;
       const seg = (cum[idx + 1] - cum[idx]) || 1;
       const f = Math.min(1, Math.max(0, (target - cum[idx]) / seg));
@@ -86,15 +91,11 @@
       const pos = [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
       driver.setLatLng(pos);
       const look = pts[Math.min(idx + 4, pts.length - 1)];
-      if (map.distance(pos, look) > 8) {
-        const want = bearing(pos, look);
-        let d = ((want - angle + 540) % 360) - 180;
-        angle += d * 0.15;
-      }
+      if (map.distance(pos, look) > 8) angle += ((((bearing(pos, look) - angle) + 540) % 360) - 180) * 0.12;
       const v = driver.getElement() && driver.getElement().querySelector("svg");
       if (v) v.style.transform = `rotate(${angle}deg)`;
       doneLine.setLatLngs(pts.slice(0, idx + 1).concat([pos]));
-      if (following) map.setView(pos, map.getZoom(), { animate: false });
+      if (following && p > 0) focus(pos, map.getZoom(), false);
       onTick(p, total * (1 - p));
       if (p < 1) raf = requestAnimationFrame(frame); else onDone();
     }
@@ -102,16 +103,15 @@
     return () => { stopped = true; cancelAnimationFrame(raf); };
   }
 
-  function fitRoute() { following = false; map.fitBounds(routeLine ? routeLine.getBounds() : [C.start, C.end], { ...padding(), animate: true }); }
   function recenter() {
-    if (driver && document.getElementById("v-trip").classList.contains("active")) { following = true; map.setView(driver.getLatLng(), C.followZoom, { animate: true }); }
-    else fitRoute();
+    following = true;
+    focus(driver ? driver.getLatLng() : C.start, C.followZoom, true);
   }
   function reset() {
     [routeLine, doneLine, driver].forEach(l => l && map.removeLayer(l));
-    routeLine = doneLine = driver = null;
-    map.fitBounds([C.start, C.end], padding());
+    routeLine = doneLine = driver = null; following = true;
+    refresh(); focus(C.start, C.followZoom, true);
   }
 
-  LG.map = { init, getRoute, animate, fitRoute, recenter, reset };
+  LG.map = { init, getRoute, animate, recenter, reset, refresh };
 })();
